@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F6F4EF; /* Warm Ivory */
+  --foreground: #121212; /* Charcoal Black */
+  --accent: #C2A76D;     /* Gold Muted */
+  --accent-secondary: #7D8F85; /* Sage Green */
+  --accent-tertiary: #B36A5E;  /* Terracotta Soft */
+  --border: #E5E5E5;    /* Border Soft Gray */
+  --secondary: #F7F3F0;
+  --shadow: rgba(0,0,0,0.08);
+}
+
+/* tailwind-v4-theme-config */
+@layer theme {
+  :root {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-accent: var(--accent);
+    --color-accent-sage: var(--accent-secondary);
+    --color-accent-terracotta: var(--accent-tertiary);
+    --color-border-custom: var(--border);
+    --color-secondary: var(--secondary);
+    --font-sans: var(--font-inter);
+    --font-serif: var(--font-playfair);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: white;
+}
+
+/* Traditonal Patterns & Textures */
+.bg-paper {
+  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+}
+
+.border-elegant {
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+.border-elegant::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--border);
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.text-gold {
+  color: #C5A059;
+}
+
+.bg-wood {
+  background-color: #3D352F;
+}
+
+/* Modern Utilities */
+@keyframes slowZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+.animate-slow-zoom {
+  animation: slowZoom 20s linear infinite alternate;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.image-full-cover {
+  position: relative;
+  overflow: hidden;
+}
+
+.image-full-cover img {
+  object-fit: cover;
+  transition: transform 1000ms;
+}
+
+.image-full-cover:hover img {
+  transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.mask-fade-bottom {
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
