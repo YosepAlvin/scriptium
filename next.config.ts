@@ -29,6 +29,8 @@ const nextConfig: NextConfig = {
   devIndicators: {
     buildActivity: false,
   } as any,
+  // Matikan Turbopack sementara untuk kestabilan build di Vercel
+  transpilePackages: ["@prisma/client"],
 };
 
 export default nextConfig;
