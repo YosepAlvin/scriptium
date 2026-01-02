@@ -26,14 +26,6 @@ const nextConfig: NextConfig = {
       expire: 3600,
     }
   },
-  turbopack: {
-    root: 'C:/Users/Admin/Documents/trae_projects/Scriptum',
-  },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-  },
   devIndicators: {
     buildActivity: false,
   } as any,
