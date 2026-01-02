@@ -6,6 +6,8 @@ import Footer from "@/components/Footer";
 import { redirect } from "next/navigation";
 import AccountView from "./AccountView";
 
+export const dynamic = "force-dynamic";
+
 export default async function MyAccountPage() {
   const session = await getServerSession(authOptions);
 
