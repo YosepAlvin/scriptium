@@ -4,14 +4,77 @@ import { Plus, Trash2, Edit, Package } from "lucide-react";
 import Link from "next/link";
 import FeaturedToggle from "./FeaturedToggle";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminProducts() {
-  const [products, categories] = await Promise.all([
-    (prisma.product as any).findMany({
+  let products: any[] = [];
+  let categories: any[] = [];
+  let loadError: string | null = null;
+  let variantsAvailable = true;
+  let dbLabel = "";
+  let dbProductCount: number | null = null;
+  let dbCategoryCount: number | null = null;
+
+  const rawConnectionString = process.env.DATABASE_URL;
+  const connectionString = rawConnectionString
+    ? rawConnectionString.trim().replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1")
+    : "";
+
+  if (connectionString) {
+    try {
+      const url = new URL(connectionString);
+      const host = url.hostname;
+      const dbName = url.pathname.replace(/^\//, "");
+
+      const mask = (value: string) => {
+        if (!value) return "";
+        if (value.length <= 8) return value;
+        return `${value.slice(0, 4)}…${value.slice(-3)}`;
+      };
+
+      dbLabel = `${mask(host)}/${mask(dbName)}`;
+    } catch {
+      dbLabel = "";
+    }
+  }
+
+  try {
+    [dbProductCount, dbCategoryCount] = await Promise.all([
+      prisma.product.count(),
+      prisma.category.count(),
+    ]);
+  } catch (e: any) {
+    console.error("ADMIN_COUNTS_LOAD_ERROR", e);
+  }
+
+  try {
+    products = await (prisma.product as any).findMany({
       include: { sizes: true },
       orderBy: { createdAt: "desc" },
-    }),
-    prisma.category.findMany(),
-  ]);
+    });
+  } catch (e: any) {
+    variantsAvailable = false;
+    console.error("ADMIN_PRODUCTS_LOAD_ERROR", e);
+    loadError =
+      "Gagal memuat produk lengkap (termasuk variasi ukuran/warna). Produk tetap akan ditampilkan tanpa variasi.";
+
+    try {
+      products = await (prisma.product as any).findMany({
+        orderBy: { createdAt: "desc" },
+      });
+    } catch (e2: any) {
+      console.error("ADMIN_PRODUCTS_FALLBACK_LOAD_ERROR", e2);
+      loadError =
+        "Gagal memuat produk. Di Vercel, ini biasanya karena DATABASE_URL mengarah ke database yang berbeda atau database belum terisi.";
+    }
+  }
+
+  try {
+    categories = await prisma.category.findMany();
+  } catch (e: any) {
+    console.error("ADMIN_PRODUCT_CATEGORIES_LOAD_ERROR", e);
+  }
 
   const productsWithCategory = products.map((product: any) => ({
     ...product,
@@ -34,6 +97,20 @@ export default async function AdminProducts() {
           <Plus size={16} />
           <span>Tambah Produk</span>
         </Link>
+      </div>
+
+      {loadError && (
+        <div className="mb-6 bg-white border border-[#E5E5E5] px-6 py-4 text-xs text-[#666666]">
+          {loadError}
+        </div>
+      )}
+
+      <div className="mb-6 bg-white border border-[#E5E5E5] px-6 py-4 text-[10px] uppercase tracking-[0.2em] text-[#666666] flex flex-wrap gap-x-6 gap-y-2">
+        <span>Env: {process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown"}</span>
+        <span>DB: {dbLabel || "unknown"}</span>
+        <span>Produk(DB): {dbProductCount ?? "?"}</span>
+        <span>Kategori(DB): {dbCategoryCount ?? "?"}</span>
+        <span>Variasi: {variantsAvailable ? "aktif" : "nonaktif"}</span>
       </div>
 
       <div className="bg-white border border-[#E5E5E5] overflow-hidden">
@@ -122,7 +199,7 @@ export default async function AdminProducts() {
             ))}
             {productsWithCategory.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-8 py-12 text-center text-[#999999] text-xs uppercase tracking-[0.2em]">
+                <td colSpan={6} className="px-8 py-12 text-center text-[#999999] text-xs uppercase tracking-[0.2em]">
                   Tidak ada produk ditemukan.
                 </td>
               </tr>

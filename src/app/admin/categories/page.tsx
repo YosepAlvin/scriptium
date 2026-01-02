@@ -3,10 +3,66 @@ import { deleteCategory, createCategory } from "@/lib/actions/category";
 import { Plus, Trash2, Edit } from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminCategories() {
-  const categories = await prisma.category.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  let categories: any[] = [];
+  let loadError: string | null = null;
+  let dbLabel = "";
+  let dbProductCount: number | null = null;
+  let dbCategoryCount: number | null = null;
+
+  const rawConnectionString = process.env.DATABASE_URL;
+  const connectionString = rawConnectionString
+    ? rawConnectionString.trim().replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1")
+    : "";
+
+  if (connectionString) {
+    try {
+      const url = new URL(connectionString);
+      const host = url.hostname;
+      const dbName = url.pathname.replace(/^\//, "");
+
+      const mask = (value: string) => {
+        if (!value) return "";
+        if (value.length <= 8) return value;
+        return `${value.slice(0, 4)}…${value.slice(-3)}`;
+      };
+
+      dbLabel = `${mask(host)}/${mask(dbName)}`;
+    } catch {
+      dbLabel = "";
+    }
+  }
+
+  try {
+    [dbProductCount, dbCategoryCount] = await Promise.all([
+      prisma.product.count(),
+      prisma.category.count(),
+    ]);
+  } catch (e: any) {
+    console.error("ADMIN_COUNTS_LOAD_ERROR", e);
+  }
+
+  try {
+    categories = await prisma.category.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (e: any) {
+    console.error("ADMIN_CATEGORIES_LOAD_ERROR", e);
+    try {
+      categories = await prisma.category.findMany({
+        orderBy: { name: "asc" },
+      });
+      loadError =
+        "Gagal memuat kategori dengan urutan terbaru. Menampilkan urutan berdasarkan nama.";
+    } catch (e2: any) {
+      console.error("ADMIN_CATEGORIES_FALLBACK_LOAD_ERROR", e2);
+      loadError =
+        "Gagal memuat kategori. Di Vercel, ini biasanya karena DATABASE_URL mengarah ke database yang berbeda atau database belum terisi.";
+    }
+  }
 
   return (
     <div>
@@ -26,6 +82,19 @@ export default async function AdminCategories() {
         </Link>
       </div>
 
+      {loadError && (
+        <div className="mb-6 bg-white border border-[#E5E5E5] px-6 py-4 text-xs text-[#666666]">
+          {loadError}
+        </div>
+      )}
+
+      <div className="mb-6 bg-white border border-[#E5E5E5] px-6 py-4 text-[10px] uppercase tracking-[0.2em] text-[#666666] flex flex-wrap gap-x-6 gap-y-2">
+        <span>Env: {process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown"}</span>
+        <span>DB: {dbLabel || "unknown"}</span>
+        <span>Produk(DB): {dbProductCount ?? "?"}</span>
+        <span>Kategori(DB): {dbCategoryCount ?? "?"}</span>
+      </div>
+
       <div className="bg-white border border-[#E5E5E5] overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -42,7 +111,6 @@ export default async function AdminCategories() {
                 <td className="px-8 py-6 text-sm font-medium">{category.name}</td>
                 <td className="px-8 py-6 text-xs text-[#666666]">{category.slug}</td>
                 <td className="px-8 py-6 text-xs text-[#666666]">
-                  {/* We would need a count here */}
                   -
                 </td>
                 <td className="px-8 py-6 text-right">
@@ -62,6 +130,13 @@ export default async function AdminCategories() {
                 </td>
               </tr>
             ))}
+            {categories.length === 0 && !loadError && (
+              <tr>
+                <td colSpan={4} className="px-8 py-12 text-center text-[#999999] text-xs uppercase tracking-[0.2em]">
+                  Tidak ada kategori ditemukan.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

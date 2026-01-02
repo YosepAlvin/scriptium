@@ -11,6 +11,9 @@ import { unstable_cache } from "next/cache";
 import SectionReveal from "@/components/ui/SectionReveal";
 import { blurDataURL } from "@/lib/image-utils";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // Cache static data
 const getCachedCategories = unstable_cache(
   async () => {

@@ -4,6 +4,9 @@ import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ShopPage({
   searchParams,
 }: {
@@ -22,20 +25,32 @@ export default async function ShopPage({
     orderBy = { price: "desc" };
   }
 
-  const [products, categories] = await Promise.all([
-    (prisma.product as any).findMany({
+  let products: any[] = [];
+  let categories: any[] = [];
+  let loadError: string | null = null;
+
+  try {
+    products = await (prisma.product as any).findMany({
       orderBy,
       include: {
         category: true,
         reviews: {
-          select: { rating: true }
-        }
-      }
-    }),
-    prisma.category.findMany({
+          select: { rating: true },
+        },
+      },
+    });
+  } catch (e: any) {
+    console.error("SHOP_PRODUCTS_LOAD_ERROR", e);
+    loadError = "Gagal memuat produk dari database.";
+  }
+
+  try {
+    categories = await prisma.category.findMany({
       orderBy: { name: "asc" },
-    }),
-  ]);
+    });
+  } catch (e: any) {
+    console.error("SHOP_CATEGORIES_LOAD_ERROR", e);
+  }
 
   const productsWithCategory = products;
 
@@ -104,6 +119,12 @@ export default async function ShopPage({
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
+
+          {loadError && (
+            <div className="text-center py-10 text-[#999999] text-xs uppercase tracking-[0.2em]">
+              {loadError}
+            </div>
+          )}
 
           {productsWithCategory.length === 0 && (
             <div className="text-center py-24 text-[#999999] text-xs uppercase tracking-[0.2em]">

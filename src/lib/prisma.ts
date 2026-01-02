@@ -8,12 +8,23 @@ const globalForPrisma = global as unknown as {
 };
 
 const createPrismaClient = () => {
-  const connectionString = process.env.DATABASE_URL;
+  const rawConnectionString = process.env.DATABASE_URL;
+  const connectionString = rawConnectionString
+    ? rawConnectionString.trim().replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1")
+    : "";
+
   if (!connectionString) {
-    throw new Error("DATABASE_URL is not set");
+    throw new Error(
+      "DATABASE_URL is not set (or is empty). Set it in Vercel Environment Variables without quotes."
+    );
   }
 
-  const pool = globalForPrisma.pgPool ?? new Pool({ connectionString });
+  const pool =
+    globalForPrisma.pgPool ??
+    new Pool({
+      connectionString,
+      max: process.env.NODE_ENV === "production" ? 1 : 5,
+    });
   const adapter = new PrismaPg(pool);
   const client = new PrismaClient({ adapter });
 

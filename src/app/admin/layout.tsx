@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { LayoutDashboard, Tag, Package, ShoppingCart, LogOut, MessageSquare } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function AdminLayout({
   children,
 }: {
