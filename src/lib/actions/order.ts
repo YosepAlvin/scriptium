@@ -102,10 +102,28 @@ export async function updateOrderStatus(orderId: string, status: string, type: "
   }
 
   if (type === "order") {
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status },
-    });
+    if (status === "COMPLETED" && currentOrder.paymentStatus !== "PAID") {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status, paymentStatus: "PAID" },
+      });
+
+      for (const item of currentOrder.items) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: {
+            soldCount: {
+              increment: item.quantity,
+            },
+          },
+        });
+      }
+    } else {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status },
+      });
+    }
   } else {
     // If updating payment status
     await prisma.order.update({
