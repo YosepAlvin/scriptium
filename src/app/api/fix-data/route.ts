@@ -83,6 +83,95 @@ export async function GET(request: Request) {
     });
   }
 
+  if (mode === 'seed-all') {
+    const baseNames = [
+      "Budi", "Andi", "Rizky", "Fajar", "Agus", "Dedi", "Eko", "Hendra", "Joko", "Wahyu",
+      "Siti", "Ayu", "Dewi", "Rina", "Putri", "Nabila", "Intan", "Rani", "Fitri", "Nur",
+      "Bagas", "Arif", "Dimas", "Farhan", "Ilham", "Iqbal", "Rafi", "Galih", "Yoga", "Bima",
+      "Lia", "Nia", "Yuni", "Wulan", "Salsa", "Nadia", "Hana", "Fani", "Dinda", "Tiara"
+    ];
+    const lastNames = [
+      "Santoso", "Saputra", "Pratama", "Wijaya", "Kusuma", "Maulana", "Hidayat", "Siregar", "Putra", "Utama",
+      "Nugroho", "Setiawan", "Rahmawati", "Lestari", "Purnama", "Anggraini", "Wibowo", "Fauzi", "Permata", "Ramadhan"
+    ];
+    const comments = [
+      "Barangnya sesuai deskripsi, kualitas oke.",
+      "Bahannya nyaman dan jahitannya rapi.",
+      "Pengiriman cepat, packing aman.",
+      "Keren banget, cocok dipakai harian.",
+      "Worth it untuk harganya.",
+      "Ukurannya pas, sesuai size chart.",
+      "Detail produk bagus, rekomendasi.",
+      "Suka banget, bakal order lagi.",
+      "Kualitas premium, puas.",
+      "Modelnya bagus, bahan tebal tapi nyaman."
+    ];
+
+    const usersToCreate = 80;
+    const dummyUsers = [];
+    for (let i = 0; i < usersToCreate; i++) {
+      const name = `${baseNames[i % baseNames.length]} ${lastNames[i % lastNames.length]}`;
+      const email = `pembeli${i + 1}@scriptium-dummy.id`;
+
+      let user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            name,
+            email,
+            role: 'BUYER',
+            image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`
+          }
+        });
+      }
+      dummyUsers.push(user);
+    }
+
+    const products = await prisma.product.findMany({
+      select: { id: true, name: true }
+    });
+
+    const perProductReviews = Math.min(25, dummyUsers.length);
+    const results = [];
+
+    for (const product of products) {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { soldCount: 50 + Math.floor(Math.random() * 80) }
+      });
+
+      await prisma.review.deleteMany({
+        where: { productId: product.id }
+      });
+
+      const reviewers = dummyUsers
+        .slice()
+        .sort(() => Math.random() - 0.5)
+        .slice(0, perProductReviews);
+
+      const reviewsData = reviewers.map((user, index) => ({
+        productId: product.id,
+        userId: user.id,
+        rating: 4 + Math.floor(Math.random() * 2),
+        comment: comments[(index + Math.floor(Math.random() * comments.length)) % comments.length],
+        createdAt: new Date(Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 365))
+      }));
+
+      await prisma.review.createMany({
+        data: reviewsData
+      });
+
+      results.push(`Seeded ${product.name}: soldCount>=50, reviews=${reviewsData.length}`);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Seeded soldCount (50+) and reviews for all products',
+      products: products.length,
+      results
+    });
+  }
+
   try {
     const products = await prisma.product.findMany({
       where: {
