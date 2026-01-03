@@ -88,12 +88,7 @@ export default async function AdminCategories() {
         </div>
       )}
 
-      <div className="mb-6 bg-white border border-[#E5E5E5] px-6 py-4 text-[10px] uppercase tracking-[0.2em] text-[#666666] flex flex-wrap gap-x-6 gap-y-2">
-        <span>Env: {process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown"}</span>
-        <span>DB: {dbLabel || "unknown"}</span>
-        <span>Produk(DB): {dbProductCount ?? "?"}</span>
-        <span>Kategori(DB): {dbCategoryCount ?? "?"}</span>
-      </div>
+
 
       <div className="bg-white border border-[#E5E5E5] overflow-hidden">
         <table className="w-full text-left border-collapse">

@@ -6,13 +6,15 @@ import AddToCartButton from "./AddToCartButton";
 import { Star, MessageSquare, X } from "lucide-react";
 import { blurDataURL } from "@/lib/image-utils";
 import { motion, AnimatePresence } from "framer-motion";
+import ProductReviews from "@/components/ProductReviews";
 
 interface ProductViewProps {
   product: any;
   categoryName: string;
+  canReview?: boolean;
 }
 
-export default function ProductView({ product, categoryName }: ProductViewProps) {
+export default function ProductView({ product, categoryName, canReview = false }: ProductViewProps) {
   const images = JSON.parse(product.images);
   const [activeImage, setActiveImage] = useState(images[0] || "https://via.placeholder.com/600x800");
   
@@ -452,42 +454,11 @@ export default function ProductView({ product, categoryName }: ProductViewProps)
               </p>
             </div>
           ) : (
-            <div className="space-y-8">
-              {reviews.length > 0 ? (
-                reviews.map((review: any) => (
-                  <div key={review.id} className="border-b border-[#F0F0F0] pb-8 last:border-0">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-[#F5F5F5] flex items-center justify-center text-[10px] font-bold uppercase">
-                          {review.user.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider">{review.user.name}</p>
-                          <p className="text-[9px] text-[#999999]">{new Date(review.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                        </div>
-                      </div>
-                      <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star 
-                            key={star} 
-                            size={10} 
-                            className={`${star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-[#E5E5E5]"}`} 
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-xs text-[#666666] leading-relaxed">
-                      {review.comment}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <div className="py-12 text-center">
-                  <MessageSquare size={32} className="mx-auto text-[#E5E5E5] mb-4" strokeWidth={1} />
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#999999]">Belum ada review untuk produk ini.</p>
-                </div>
-              )}
-            </div>
+            <ProductReviews 
+              productId={product.id} 
+              reviews={reviews} 
+              canReview={canReview} 
+            />
           )}
         </div>
 

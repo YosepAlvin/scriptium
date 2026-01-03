@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Package, User, MapPin, Plus, Edit2, Trash2, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { 
   createAddress, 
   updateAddress, 
@@ -182,9 +183,12 @@ export default function AccountView({ user, orders, addresses }: AccountViewProp
                                 </p>
                               </div>
                             </div>
-                            <button className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#1A1A1A] hover:underline underline-offset-4">
+                            <Link 
+                              href={`/products/${item.product.slug}`}
+                              className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#1A1A1A] hover:underline underline-offset-4"
+                            >
                               View Product
-                            </button>
+                            </Link>
                           </div>
                         ))}
                       </div>

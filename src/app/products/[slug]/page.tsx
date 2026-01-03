@@ -7,6 +7,8 @@ import ProductView from "./ProductView";
 import ProductCard from "@/components/ProductCard";
 import SectionReveal from "@/components/ui/SectionReveal";
 import { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -82,6 +84,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <ProductView 
             product={product} 
             categoryName={product.category?.name || "Uncategorized"} 
+            canReview={canReview}
           />
 
           {/* Related Products Section */}
