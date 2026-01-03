@@ -91,18 +91,57 @@ export async function updateOrderStatus(orderId: string, status: string, type: "
     throw new Error("Unauthorized");
   }
 
+  // Fetch current order status to prevent double counting
+  const currentOrder = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true }
+  });
+
+  if (!currentOrder) {
+    throw new Error("Order not found");
+  }
+
   if (type === "order") {
     await prisma.order.update({
       where: { id: orderId },
       data: { status },
     });
   } else {
+    // If updating payment status
     await prisma.order.update({
       where: { id: orderId },
       data: { paymentStatus: status },
     });
+
+    // If payment becomes PAID and it wasn't before, increment soldCount
+    if (status === "PAID" && currentOrder.paymentStatus !== "PAID") {
+      for (const item of currentOrder.items) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: {
+            soldCount: {
+              increment: item.quantity
+            }
+          }
+        });
+      }
+    } else if (status !== "PAID" && currentOrder.paymentStatus === "PAID") {
+      // If payment status changes FROM PAID to something else, decrement soldCount
+      for (const item of currentOrder.items) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: {
+            soldCount: {
+              decrement: item.quantity
+            }
+          }
+        });
+      }
+    }
   }
 
   revalidatePath("/admin/orders");
   revalidatePath("/my-account");
+  revalidatePath("/admin/products"); // Revalidate products to show updated soldCount
+  revalidatePath("/"); // Revalidate home where products are shown
 }

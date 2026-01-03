@@ -14,7 +14,9 @@ export default async function AdminOrders() {
   });
 
   // Calculate statistics
-  const totalRevenue = orders.reduce((acc, order) => acc + order.total, 0);
+  const totalRevenue = orders
+    .filter(order => order.paymentStatus === "PAID")
+    .reduce((acc, order) => acc + order.total, 0);
   const totalOrders = orders.length;
   const pendingOrders = orders.filter(o => o.status === "PENDING").length;
   const completedOrders = orders.filter(o => o.status === "COMPLETED").length;

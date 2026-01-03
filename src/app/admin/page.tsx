@@ -1,11 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { Package, Tag, ShoppingCart, Users, TrendingUp, Eye, ShoppingBag, Clock } from "lucide-react";
+import { Package, DollarSign, ShoppingCart, Users, TrendingUp, Eye, ShoppingBag, Clock } from "lucide-react";
 import Image from "next/image";
 
 export default async function AdminDashboard() {
-  const [productCount, categoryCount, orderCount, userCount, mostViewedProducts] = await Promise.all([
+  const [productCount, paidOrders, orderCount, userCount, mostViewedProducts] = await Promise.all([
     prisma.product.count(),
-    prisma.category.count(),
+    prisma.order.findMany({
+      where: { paymentStatus: 'PAID' },
+      select: { total: true }
+    }),
     prisma.order.count(),
     prisma.user.count({ where: { role: "BUYER" } }),
     (prisma.product as any).findMany({
@@ -15,9 +18,11 @@ export default async function AdminDashboard() {
     })
   ]);
 
+  const totalRevenue = paidOrders.reduce((acc, order) => acc + order.total, 0);
+
   const stats = [
     { name: "Total Produk", value: productCount, icon: Package },
-    { name: "Kategori", value: categoryCount, icon: Tag },
+    { name: "Total Pendapatan", value: `Rp ${totalRevenue.toLocaleString('id-ID')}`, icon: DollarSign },
     { name: "Total Pesanan", value: orderCount, icon: ShoppingCart },
     { name: "Total Pembeli", value: userCount, icon: Users },
   ];

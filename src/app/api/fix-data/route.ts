@@ -12,6 +12,34 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const mode = searchParams.get('mode');
+
+  // MODE CHECK: Inspect product data
+  if (mode === 'check') {
+    const products = await prisma.product.findMany({
+      include: {
+        sizes: true,
+        _count: {
+          select: { reviews: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const report = products.map(p => ({
+      name: p.name,
+      soldCount: p.soldCount,
+      totalStock: p.sizes.reduce((acc, s) => acc + s.stock, 0) + (p.stock || 0),
+      reviewCount: p._count.reviews,
+      isLimited: p.name.includes('Scriptum X Leaks')
+    }));
+
+    return NextResponse.json({ 
+      message: "Product Data Report", 
+      data: report 
+    });
+  }
+
   try {
     const products = await prisma.product.findMany({
       where: {
