@@ -149,17 +149,6 @@ export default function ProductCard({ product }: ProductCardProps) {
               Lihat Detail
             </div>
           </div>
-          
-          {/* Sold Count Badge (More Minimalist) */}
-          {product.soldCount && product.soldCount > 0 && (
-            <div className="absolute top-4 left-4 z-10">
-              <div className="bg-[#121212]/90 backdrop-blur-sm px-3 py-1.5 shadow-sm border border-white/10">
-                <span className="text-[8px] uppercase tracking-[0.2em] font-medium text-white">
-                  Terjual {product.soldCount > 100 ? "100+" : product.soldCount}
-                </span>
-              </div>
-            </div>
-          )}
 
           {/* Wishlist Placeholder (Aesthetic) */}
           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10">

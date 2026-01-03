@@ -52,6 +52,7 @@ const getCachedFeaturedProducts = unstable_cache(
     return (prisma as any).product.findMany({
       include: {
         category: true,
+        sizes: true,
         reviews: true
       },
       orderBy: { createdAt: 'desc' }

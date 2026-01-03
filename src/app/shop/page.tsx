@@ -34,6 +34,7 @@ export default async function ShopPage({
       orderBy,
       include: {
         category: true,
+        sizes: true,
         reviews: {
           select: { rating: true },
         },
