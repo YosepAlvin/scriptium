@@ -155,7 +155,10 @@ export default function AccountView({ user, orders, addresses }: AccountViewProp
                         {order.items.map((item: any) => (
                           <div key={item.id} className="flex justify-between items-center group">
                             <div className="flex items-center space-x-6">
-                              <div className="relative w-16 h-20 bg-[#F9F7F5] overflow-hidden border border-border-custom">
+                              <Link 
+                                href={`/products/${item.product.slug}`}
+                                className="relative w-16 h-20 bg-[#F9F7F5] overflow-hidden border border-border-custom block"
+                              >
                                 {(() => {
                                   const images = typeof item.product.images === 'string' 
                                     ? JSON.parse(item.product.images) 
@@ -175,9 +178,11 @@ export default function AccountView({ user, orders, addresses }: AccountViewProp
                                     </div>
                                   );
                                 })()}
-                              </div>
+                              </Link>
                               <div>
-                                <p className="text-[11px] font-bold uppercase tracking-widest mb-1">{item.product.name}</p>
+                                <Link href={`/products/${item.product.slug}`}>
+                                  <p className="text-[11px] font-bold uppercase tracking-widest mb-1 hover:text-[#666666] transition-colors">{item.product.name}</p>
+                                </Link>
                                 <p className="text-[10px] text-[#666666] tracking-wide">
                                   Qty: {item.quantity} × Rp {item.price.toLocaleString('id-ID')}
                                 </p>
