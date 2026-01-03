@@ -61,6 +61,28 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
+  const session = await getServerSession(authOptions);
+  let canReview = false;
+
+  if (session?.user) {
+    const userId = (session.user as any).id;
+    const hasPurchased = await prisma.order.count({
+      where: {
+        userId,
+        items: { some: { productId: product.id } }
+      }
+    });
+
+    const existingReview = await prisma.review.count({
+      where: {
+        userId,
+        productId: product.id
+      }
+    });
+
+    canReview = hasPurchased > 0 && existingReview === 0;
+  }
+
   // Fetch related products from same category
   const relatedProducts = await (prisma.product as any).findMany({
     where: {
