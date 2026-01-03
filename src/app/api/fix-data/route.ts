@@ -40,6 +40,49 @@ export async function GET(request: Request) {
     });
   }
 
+  // MODE SYNC-SOLD: Recalculate sold counts from PAID orders
+  if (mode === 'sync-sold') {
+    // 1. Reset soldCount to 0 for all products first (optional, but cleaner)
+    await prisma.product.updateMany({
+      data: { soldCount: 0 }
+    });
+
+    // 2. Aggregate quantities from PAID orders
+    const paidItems = await prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: {
+        order: {
+          paymentStatus: 'PAID'
+        }
+      },
+      _sum: {
+        quantity: true
+      }
+    });
+
+    const results = [];
+
+    // 3. Update products with aggregated counts
+    for (const item of paidItems) {
+      if (item._sum.quantity) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: { soldCount: item._sum.quantity }
+        });
+        results.push(`Updated product ${item.productId}: soldCount = ${item._sum.quantity}`);
+      }
+    }
+    
+    // 4. Force specific Limited Edition products to have high sold count if needed (optional override)
+    // The previous block handles real data. The limited edition logic below overrides it anyway.
+    
+    return NextResponse.json({ 
+      message: "Sold Counts Synced from PAID orders", 
+      count: results.length,
+      details: results 
+    });
+  }
+
   try {
     const products = await prisma.product.findMany({
       where: {

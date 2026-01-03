@@ -144,4 +144,5 @@ export async function updateOrderStatus(orderId: string, status: string, type: "
   revalidatePath("/my-account");
   revalidatePath("/admin/products"); // Revalidate products to show updated soldCount
   revalidatePath("/"); // Revalidate home where products are shown
+  revalidatePath("/shop"); // Revalidate shop page
 }
