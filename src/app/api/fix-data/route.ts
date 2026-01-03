@@ -28,22 +28,42 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Products not found" });
     }
 
-    // Get a user for reviews
-    const users = await prisma.user.findMany({ take: 1 });
-    if (users.length === 0) {
-        // Create a dummy user if none exists
-        const dummyUser = await prisma.user.create({
-            data: {
-                name: "Scriptium Fan",
-                email: "fan@scriptium.com",
-                role: "BUYER"
-            }
-        });
-        users.push(dummyUser);
-    }
-    const reviewer = users[0];
-
     const results = [];
+    
+    // Comments pool
+    const comments = [
+      "Kualitas bahan sangat bagus!", "Desainnya keren banget, limited edition emang beda.",
+      "Pas banget di badan, suka!", "Pengiriman cepat dan packing aman.",
+      "Worth it banget harganya.", "Sangat eksklusif, bangga punya ini.",
+      "Detailnya luar biasa.", "Nyaman dipakai seharian.",
+      "Semoga ada restock lagi, mau beli buat kado.", "Top markotop!",
+      "Bahan tebal tapi adem.", "Sablonnya rapi.",
+      "Ukurannya sesuai size chart.", "Gak nyesel beli ini.",
+      "Mantap jiwa!", "Recommended seller.",
+      "Suka banget sama konsepnya.", "Jaketnya hangat.",
+      "Hoodienya tebal.", "Keren parah.",
+      "Solid build quality.", "Premium feel.",
+      "Must have item!", "Auto ganteng pake ini.", "Terbaik!"
+    ];
+
+    // Create or get dummy users first
+    const dummyUsers = [];
+    for (let i = 0; i < 25; i++) {
+      const email = `reviewer${i + 1}@scriptium-dummy.com`;
+      let user = await prisma.user.findUnique({ where: { email } });
+      
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            name: `Reviewer ${i + 1}`,
+            email: email,
+            role: 'BUYER',
+            image: `https://api.dicebear.com/7.x/avataaars/svg?seed=Reviewer${i+1}` // Random avatar
+          }
+        });
+      }
+      dummyUsers.push(user);
+    }
 
     for (const product of products) {
       // 1. Set Stock to 0
@@ -57,32 +77,14 @@ export async function GET(request: Request) {
         where: { productId: product.id }
       });
 
-      // 3. Create 25 reviews
-      const comments = [
-        "Kualitas bahan sangat bagus!", "Desainnya keren banget, limited edition emang beda.",
-        "Pas banget di badan, suka!", "Pengiriman cepat dan packing aman.",
-        "Worth it banget harganya.", "Sangat eksklusif, bangga punya ini.",
-        "Detailnya luar biasa.", "Nyaman dipakai seharian.",
-        "Semoga ada restock lagi, mau beli buat kado.", "Top markotop!",
-        "Bahan tebal tapi adem.", "Sablonnya rapi.",
-        "Ukurannya sesuai size chart.", "Gak nyesel beli ini.",
-        "Mantap jiwa!", "Recommended seller.",
-        "Suka banget sama konsepnya.", "Jaketnya hangat.",
-        "Hoodienya tebal.", "Keren parah.",
-        "Solid build quality.", "Premium feel.",
-        "Must have item!", "Auto ganteng pake ini.", "Terbaik!"
-      ];
-
-      const reviewsData = [];
-      for (let i = 0; i < 25; i++) {
-        reviewsData.push({
-          productId: product.id,
-          userId: reviewer.id,
-          rating: 5,
-          comment: comments[i % comments.length],
-          createdAt: new Date(Date.now() - Math.floor(Math.random() * 1000000000))
-        });
-      }
+      // 3. Create 25 reviews using unique users
+      const reviewsData = dummyUsers.map((user, index) => ({
+        productId: product.id,
+        userId: user.id,
+        rating: 5,
+        comment: comments[index % comments.length],
+        createdAt: new Date(Date.now() - Math.floor(Math.random() * 1000000000 * (index + 1))) // Random date
+      }));
 
       await prisma.review.createMany({
         data: reviewsData
@@ -94,12 +96,12 @@ export async function GET(request: Request) {
         data: { soldCount: 50 + Math.floor(Math.random() * 50) }
       });
 
-      results.push(`Processed ${product.name}: Stock 0, Reviews 25`);
+      results.push(`Processed ${product.name}: Stock 0, Reviews 25 (from ${dummyUsers.length} unique users)`);
     }
 
     return NextResponse.json({ success: true, results });
 
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
   }
 }
