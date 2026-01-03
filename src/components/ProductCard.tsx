@@ -59,25 +59,31 @@ export default function ProductCard({ product }: ProductCardProps) {
             ? "border-[2px] border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.15)] group-hover:shadow-[0_0_25px_rgba(212,175,55,0.3)]" 
             : "border border-border-custom/50 group-hover:border-accent/30"
         }`}>
-          {isLimitedEdition && (
-            <div className="absolute top-3 left-3 z-30 flex flex-col gap-1.5">
+          {/* Unified Badge Container */}
+          <div className="absolute top-3 left-3 z-30 flex flex-col gap-1.5 items-start">
+            {/* Limited Edition Badge */}
+            {isLimitedEdition && (
               <div className="bg-[#D4AF37] text-white text-[7px] font-black tracking-[0.3em] px-2 py-1 shadow-lg border border-white/10">
                 LIMITED
               </div>
-              {isLowStock && (
-                <div className="bg-red-600 text-white text-[6px] font-black tracking-[0.1em] px-1.5 py-0.5 shadow-md animate-pulse">
-                  SISA TERAKHIR
-                </div>
-              )}
-            </div>
-          )}
-          {!isLimitedEdition && isLowStock && (
-            <div className="absolute top-3 left-3 z-30">
-              <div className="bg-red-500 text-white text-[7px] font-black tracking-[0.2em] px-2 py-1 shadow-md">
-                SISA {totalStock}
+            )}
+
+            {/* Sold Count Badge - Visible for ALL products if data exists */}
+            {product.soldCount !== undefined && product.soldCount !== null && (
+              <div className="bg-[#121212]/90 backdrop-blur-sm px-2 py-1 shadow-sm border border-white/10">
+                <span className="text-[7px] uppercase tracking-[0.2em] font-medium text-white">
+                  TERJUAL {product.soldCount}
+                </span>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Low Stock Warning */}
+            {isLowStock && (
+              <div className={`${isLimitedEdition ? "bg-red-600 animate-pulse" : "bg-red-500"} text-white text-[6px] font-black tracking-[0.1em] px-1.5 py-0.5 shadow-md`}>
+                {isLimitedEdition ? "SISA TERAKHIR" : `SISA ${totalStock}`}
+              </div>
+            )}
+          </div>
           {isOutOfStock && (
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-20 flex items-center justify-center">
               <div className="bg-white/90 px-4 py-2 border border-black/10 shadow-xl">
