@@ -71,29 +71,33 @@ export default async function AdminDashboard() {
             </button>
           </div>
           <div className="space-y-6">
-            {mostViewedProducts.map((product: any, index: number) => (
-              <div key={product.id} className="flex items-center justify-between group">
-                <div className="flex items-center gap-4">
-                  <div className="text-[10px] font-bold text-[#999999] w-4">0{index + 1}</div>
-                  <div className="relative w-12 h-12 bg-secondary rounded-lg overflow-hidden">
-                    <Image
-                      src={JSON.parse(product.images)[0]}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+            {mostViewedProducts.map((product: any, index: number) => {
+              const images = product.images ? JSON.parse(product.images) : [];
+              const thumbnail = images[0] || "https://via.placeholder.com/80x80?text=%20";
+              return (
+                <div key={product.id} className="flex items-center justify-between group">
+                  <div className="flex items-center gap-4">
+                    <div className="text-[10px] font-bold text-[#999999] w-4">0{index + 1}</div>
+                    <div className="relative w-12 h-12 bg-secondary rounded-lg overflow-hidden">
+                      <Image
+                        src={thumbnail}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   <div>
                     <h3 className="text-sm font-bold group-hover:text-accent transition-colors">{product.name}</h3>
                     <p className="text-[10px] uppercase tracking-widest text-[#999999]">{product.category?.name}</p>
                   </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold">Rp {product.price.toLocaleString('id-ID')}</p>
+                    <p className="text-[10px] text-emerald-500 font-bold">+12% Kunjungan</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold">Rp {product.price.toLocaleString('id-ID')}</p>
-                  <p className="text-[10px] text-emerald-500 font-bold">+12% Kunjungan</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
