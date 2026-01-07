@@ -256,9 +256,15 @@ export default function ProductForm({
     
     try {
       if (product) {
-        await updateProduct(product.id, formData);
+        const result = await updateProduct(product.id, formData);
+        if (!result || !result.success) {
+          throw new Error(result?.error || "Gagal memperbarui produk");
+        }
       } else {
-        await createProduct(formData);
+        const result = await createProduct(formData);
+        if (!result || !result.success) {
+          throw new Error(result?.error || "Gagal membuat produk");
+        }
       }
       router.push("/admin/products");
       router.refresh();

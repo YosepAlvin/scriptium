@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 /**
