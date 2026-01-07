@@ -64,8 +64,8 @@ export async function createProduct(formData: FormData) {
     revalidatePath("/", "page");
     revalidatePath("/admin/products", "page");
     revalidatePath("/shop", "page");
-    revalidateTag("products");
-    revalidateTag("featured-products");
+    revalidateTag("products", "page");
+    revalidateTag("featured-products", "page");
 
     return { success: true, productId: product.id };
   } catch (error) {
@@ -146,8 +146,8 @@ export async function updateProduct(id: string, formData: FormData) {
     revalidatePath("/", "page");
     revalidatePath("/admin/products", "page");
     revalidatePath("/shop", "page");
-    revalidateTag("products");
-    revalidateTag("featured-products");
+    revalidateTag("products", "page");
+    revalidateTag("featured-products", "page");
 
     return { success: true };
   } catch (error) {
