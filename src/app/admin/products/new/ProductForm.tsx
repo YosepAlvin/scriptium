@@ -1,6 +1,6 @@
 "use client";
 
-import { createProduct, updateProduct } from "@/lib/actions/product";
+import { updateProduct } from "@/lib/actions/product";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -261,9 +261,20 @@ export default function ProductForm({
           throw new Error(result?.error || "Gagal memperbarui produk");
         }
       } else {
-        const result = await createProduct(formData);
-        if (!result || !result.success) {
-          throw new Error(result?.error || "Gagal membuat produk");
+        const response = await fetch("/api/products", {
+          method: "POST",
+          body: formData,
+        });
+
+        let data: any = null;
+        try {
+          data = await response.json();
+        } catch (e) {
+          throw new Error("Gagal membaca respon server.");
+        }
+
+        if (!response.ok || !data?.success) {
+          throw new Error(data?.error || "Gagal membuat produk");
         }
       }
       router.push("/admin/products");
